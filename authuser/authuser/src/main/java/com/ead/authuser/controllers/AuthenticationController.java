@@ -1,5 +1,8 @@
 package com.ead.authuser.controllers;
 
+import com.ead.authuser.configs.JwtDto;
+import com.ead.authuser.configs.JwtProvider;
+import com.ead.authuser.configs.LoginDto;
 import com.ead.authuser.dtos.UserDto;
 import com.ead.authuser.enums.RoleType;
 import com.ead.authuser.enums.UserStatus;
@@ -15,10 +18,15 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -34,6 +42,11 @@ public class AuthenticationController {
     private RoleService roleService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtProvider jwtProvider;
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
 
     @PostMapping("/signup")
     public ResponseEntity<Object> registerUser(@RequestBody @Validated(UserDto.UserView.RegistrationPost.class)
@@ -63,6 +76,15 @@ public class AuthenticationController {
         log.info("User saved successfully userId {} ", userModel.getUserId());
         return ResponseEntity.status(HttpStatus.CREATED).body(userModel);
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<JwtDto> login(@Valid @RequestBody LoginDto dto) {
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String token = jwtProvider.generateKey(authentication);
+        return ResponseEntity.ok(new JwtDto(token));
+    }
+
 
     @GetMapping("/")
     public String index() {
