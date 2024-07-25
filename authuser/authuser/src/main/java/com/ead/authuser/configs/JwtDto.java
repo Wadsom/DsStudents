@@ -9,5 +9,5 @@ import lombok.RequiredArgsConstructor;
 public class JwtDto {
     @NonNull
     private String token;
-    private String type = "bearer";
+    private String type = "Bearer";
 }

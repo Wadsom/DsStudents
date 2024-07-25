@@ -19,7 +19,7 @@ public class JwtProvider {
     private String secretJwt;
 
     public String generateKey(Authentication auth) {
-        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+        UserDetails userDetails = (UserDetailsImpl) auth.getPrincipal();
         return Jwts.builder()
                 .setSubject((userDetails.getUsername()))
                 .setExpiration(new Date((new Date()).getTime() + expiration))
